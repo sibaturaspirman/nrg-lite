@@ -8,7 +8,7 @@ import { useCamera2 } from "@/hooks/useCamera2";
 const COUNTDOWN_SECONDS = 3;
 export const PHOTO_STORAGE_KEY = "photoboothShot";
 
-// Camera fills the full 1200x1720 output canvas; the overlay frame defines the
+// Camera fills the full 1200x1784 output canvas; the overlay frame defines the
 // visible photo window. Adjust these only if you need to inset the camera again.
 const FRAME_AREA = {
   top: 0,
@@ -17,16 +17,16 @@ const FRAME_AREA = {
   right: 0,
 } as const;
 
-// Output (composite) ratio matches the frame artwork (1200x1720).
+// Output (composite) ratio matches the frame artwork (1200x1784).
 const OUTPUT_W = 1200;
-const OUTPUT_H = 1720;
+const OUTPUT_H = 1784;
 
 // Camera capture preference (portrait 9:16). The on-screen preview also uses
 // this ratio; the composite is then re-fit to OUTPUT_W x OUTPUT_H.
 const CAMERA_W = 1080;
 const CAMERA_H = 1920;
 
-const FRAME_OPTIONS = ["/images/Z-T1.png", "/images/Z-T2.png"] as const;
+const FRAME_OPTIONS = ["/images/Z-TT1.png", "/images/Z-TT2.png"] as const;
 type FrameSrc = (typeof FRAME_OPTIONS)[number];
 
 function pickRandomFrame(): FrameSrc {
@@ -318,8 +318,8 @@ export function Photobooth() {
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black">
       <div
-        className="relative mx-auto h-[min(100dvh,calc(100vw*1720/1200))] w-[min(100vw,calc(100dvh*1200/1720))] [container-type:inline-size] mt-[-7rem]"
-        style={{ aspectRatio: "1200 / 1720" }}
+        className="relative mx-auto h-[min(100dvh,calc(100vw*1784/1200))] w-[min(100vw,calc(100dvh*1200/1784))] [container-type:inline-size] mt-[-7rem]"
+        style={{ aspectRatio: "1200 / 1784" }}
       >
         <div className="absolute inset-0 z-10 overflow-hidden bg-black">
           <video
