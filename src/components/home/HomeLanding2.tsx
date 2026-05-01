@@ -23,7 +23,7 @@ export function HomeLanding2() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/tnc");
+        router.push("/zamna/tnc");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -47,7 +47,7 @@ export function HomeLanding2() {
         />
 
         <Link
-          href="/tnc"
+          href="/zamna/tnc"
           aria-label="Mulai photobooth"
           className="group absolute inset-0 z-10 flex flex-col items-center justify-center px-[6cqw] text-center text-white outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >

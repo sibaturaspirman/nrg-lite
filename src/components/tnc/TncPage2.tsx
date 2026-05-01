@@ -12,7 +12,7 @@ export function TncPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/booth");
+        router.push("/zamna/booth");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -34,7 +34,7 @@ export function TncPage() {
         />
 
         <Link
-          href="/booth"
+          href="/zamna/booth"
           aria-label="Saya setuju, lanjutkan"
           className="group absolute inset-0 z-10 flex items-center justify-center px-[6cqw] outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >

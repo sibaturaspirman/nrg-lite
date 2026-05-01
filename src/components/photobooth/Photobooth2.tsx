@@ -224,7 +224,7 @@ export function Photobooth() {
       } catch {
         // sessionStorage may fail (quota / disabled); navigate anyway
       }
-      router.push("/result");
+      router.push("/zamna/result");
     },
     [router],
   );

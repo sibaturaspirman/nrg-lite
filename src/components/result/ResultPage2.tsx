@@ -63,7 +63,7 @@ export function ResultPage() {
       dataUrl = null;
     }
     if (!dataUrl) {
-      router.replace("/");
+      router.replace("/zamna");
       return;
     }
     setPhoto(dataUrl);
@@ -92,7 +92,7 @@ export function ResultPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/");
+        router.push("/zamna");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -101,7 +101,7 @@ export function ResultPage() {
 
   return (
     <Link
-      href="/"
+      href="/zamna"
       aria-label="Kembali ke beranda"
       className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black outline-none focus-visible:ring-2 focus-visible:ring-white/70"
     >
