@@ -26,7 +26,7 @@ const OUTPUT_H = 1784;
 const CAMERA_W = 1080;
 const CAMERA_H = 1920;
 
-const FRAME_OPTIONS = ["/images/Z-TT1.png", "/images/Z-TT2.png"] as const;
+const FRAME_OPTIONS = ["/images/Z-TTF1.png", "/images/Z-TTF2.png"] as const;
 type FrameSrc = (typeof FRAME_OPTIONS)[number];
 
 function pickRandomFrame(): FrameSrc {
