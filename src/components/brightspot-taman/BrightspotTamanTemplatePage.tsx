@@ -52,6 +52,7 @@ function StripPreview({
       className="relative h-full max-h-full w-auto max-w-full overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
       style={{ aspectRatio: STRIP_ASPECT }}
     >
+      {/* Template only — photos stay fixed */}
       <div
         className="absolute inset-0"
         style={{ transform: `translateX(${shiftPct}%)` }}
@@ -64,33 +65,30 @@ function StripPreview({
           sizes="50vw"
           className="object-cover"
         />
-        {shots.map((shot, i) => {
-          const { left, top, size } = photoSlotRect(i, {
-            ...layout,
-            shiftX: 0, // already applied via parent translate
-          });
-          return (
-            <div
-              key={i}
-              className="absolute overflow-hidden"
-              style={{
-                left: `${(left / STRIP_W) * 100}%`,
-                top: `${(top / STRIP_H) * 100}%`,
-                width: `${(size / STRIP_W) * 100}%`,
-                height: `${(size / STRIP_H) * 100}%`,
-              }}
-            >
-              <Image
-                src={shot}
-                alt={`Foto ${i + 1}`}
-                fill
-                unoptimized
-                className="object-cover"
-              />
-            </div>
-          );
-        })}
       </div>
+      {shots.map((shot, i) => {
+        const { left, top, size } = photoSlotRect(i, layout);
+        return (
+          <div
+            key={i}
+            className="absolute overflow-hidden"
+            style={{
+              left: `${(left / STRIP_W) * 100}%`,
+              top: `${(top / STRIP_H) * 100}%`,
+              width: `${(size / STRIP_W) * 100}%`,
+              height: `${(size / STRIP_H) * 100}%`,
+            }}
+          >
+            <Image
+              src={shot}
+              alt={`Foto ${i + 1}`}
+              fill
+              unoptimized
+              className="object-cover"
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

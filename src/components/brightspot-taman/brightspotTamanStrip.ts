@@ -27,8 +27,8 @@ export type SlotLayout = {
   /** Gap between photos as fraction of strip height. */
   gap: number;
   /**
-   * Horizontal shift of whole template + photos (fraction of strip width).
-   * Negative = geser kiri, positive = geser kanan (untuk kompensasi potongan printer).
+   * Horizontal shift of template art only (fraction of strip width).
+   * Photos stay fixed. Negative = kiri, positive = kanan.
    */
   shiftX: number;
 };
@@ -134,8 +134,7 @@ export function saveLayouts(layouts: StoredLayouts) {
 
 export function photoSlotRect(index: number, layout: SlotLayout) {
   const size = STRIP_W * layout.size;
-  const shift = STRIP_W * (layout.shiftX ?? 0);
-  const left = STRIP_W * layout.left + shift;
+  const left = STRIP_W * layout.left;
   const gap = STRIP_H * layout.gap;
   const top = STRIP_H * layout.top + index * (size + gap);
   return { left, top, size };
