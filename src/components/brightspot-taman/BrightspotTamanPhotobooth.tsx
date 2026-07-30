@@ -15,6 +15,8 @@ const MAX_OUTPUT_LONG_EDGE = 3840;
 export const BRIGHTSPOT_TAMAN_PHOTO_KEY = "brightspotTamanShot";
 export const BRIGHTSPOT_TAMAN_PHOTO_URL_KEY = "brightspotTamanUploadedUrl";
 export const BRIGHTSPOT_TAMAN_SHOTS_KEY = "brightspotTamanShots";
+/** Dual left+right strip canvas for 4R print (dibagi 2). */
+export const BRIGHTSPOT_TAMAN_PRINT_KEY = "brightspotTamanPrint";
 
 function captureFrame(
   video: HTMLVideoElement,
@@ -50,13 +52,17 @@ function captureFrame(
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   if (mirror) {
     ctx.translate(outW, 0);
     ctx.scale(-1, 1);
   }
   ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
 
-  return canvas.toDataURL("image/jpeg", 0.92);
+  // Max JPEG quality — do not downgrade capture
+  return canvas.toDataURL("image/jpeg", 1);
 }
 
 function SlotPlaceholder({ index }: { index: number }) {
@@ -126,6 +132,7 @@ export function BrightspotTamanPhotobooth() {
         );
         sessionStorage.setItem(BRIGHTSPOT_TAMAN_PHOTO_KEY, finalShots[0] ?? "");
         sessionStorage.removeItem(BRIGHTSPOT_TAMAN_PHOTO_URL_KEY);
+        sessionStorage.removeItem(BRIGHTSPOT_TAMAN_PRINT_KEY);
       } catch {
         // sessionStorage may fail; navigate anyway
       }

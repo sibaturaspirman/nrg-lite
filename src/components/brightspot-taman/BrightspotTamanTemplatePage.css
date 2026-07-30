@@ -1,11 +1,19 @@
 .bt-template-swiper .swiper {
   height: 100%;
-  padding-bottom: 2.8cqw;
+  padding-bottom: 36px;
+  overflow: visible;
+}
+
+.bt-template-swiper .swiper-wrapper {
+  align-items: center;
+  height: calc(100% - 36px);
 }
 
 .bt-template-swiper .swiper-slide {
   opacity: 0.55;
-  transform: scale(0.88);
+  transform: scale(0.94);
+  transform-origin: center center;
+  height: 100% !important;
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
@@ -16,11 +24,16 @@
   transform: scale(1);
 }
 
+.bt-template-swiper .swiper-pagination {
+  bottom: 0;
+}
+
 .bt-template-swiper .swiper-pagination-bullet {
   background: #fff;
   opacity: 0.85;
-  width: max(8px, 0.7cqw);
-  height: max(8px, 0.7cqw);
+  width: 20px;
+  height: 20px;
+  margin: 0 6px !important;
 }
 
 .bt-template-swiper .swiper-pagination-bullet-active {
