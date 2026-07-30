@@ -26,6 +26,11 @@ export type SlotLayout = {
   top: number;
   /** Gap between photos as fraction of strip height. */
   gap: number;
+  /**
+   * Horizontal shift of whole template + photos (fraction of strip width).
+   * Negative = geser kiri, positive = geser kanan (untuk kompensasi potongan printer).
+   */
+  shiftX: number;
 };
 
 /** Preview / on-screen template slots. */
@@ -34,6 +39,7 @@ export const DEFAULT_PREVIEW_LAYOUT: SlotLayout = {
   size: 0.8,
   top: 0.04,
   gap: 0.024,
+  shiftX: 0,
 };
 
 /** @deprecated use DEFAULT_PREVIEW_LAYOUT — kept for older imports */
@@ -48,6 +54,7 @@ export const DEFAULT_PRINT_LAYOUT_LEFT: SlotLayout = {
   size: 0.74,
   top: 0.03,
   gap: 0.02,
+  shiftX: 0,
 };
 
 export const DEFAULT_PRINT_LAYOUT_RIGHT: SlotLayout = {
@@ -55,6 +62,7 @@ export const DEFAULT_PRINT_LAYOUT_RIGHT: SlotLayout = {
   size: 0.74,
   top: 0.03,
   gap: 0.02,
+  shiftX: 0,
 };
 
 /** @deprecated */
@@ -89,6 +97,17 @@ function isSlotLayout(v: unknown): v is SlotLayout {
   );
 }
 
+function normalizeLayout(v: unknown, fallback: SlotLayout): SlotLayout {
+  if (!isSlotLayout(v)) return { ...fallback };
+  return {
+    left: v.left,
+    size: v.size,
+    top: v.top,
+    gap: v.gap,
+    shiftX: typeof v.shiftX === "number" ? v.shiftX : 0,
+  };
+}
+
 export function loadLayouts(): StoredLayouts {
   const defaults = defaultLayouts();
   try {
@@ -96,13 +115,9 @@ export function loadLayouts(): StoredLayouts {
     if (!raw) return defaults;
     const data = JSON.parse(raw) as Partial<StoredLayouts>;
     return {
-      preview: isSlotLayout(data.preview) ? data.preview : defaults.preview,
-      printLeft: isSlotLayout(data.printLeft)
-        ? data.printLeft
-        : defaults.printLeft,
-      printRight: isSlotLayout(data.printRight)
-        ? data.printRight
-        : defaults.printRight,
+      preview: normalizeLayout(data.preview, defaults.preview),
+      printLeft: normalizeLayout(data.printLeft, defaults.printLeft),
+      printRight: normalizeLayout(data.printRight, defaults.printRight),
     };
   } catch {
     return defaults;
@@ -119,7 +134,8 @@ export function saveLayouts(layouts: StoredLayouts) {
 
 export function photoSlotRect(index: number, layout: SlotLayout) {
   const size = STRIP_W * layout.size;
-  const left = STRIP_W * layout.left;
+  const shift = STRIP_W * (layout.shiftX ?? 0);
+  const left = STRIP_W * layout.left + shift;
   const gap = STRIP_H * layout.gap;
   const top = STRIP_H * layout.top + index * (size + gap);
   return { left, top, size };
@@ -177,7 +193,13 @@ export async function compositeStrip(
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(template, 0, 0, width, height);
+
+  // Fill edges when template is shifted (printer crop compensation)
+  ctx.fillStyle = "#1a0508";
+  ctx.fillRect(0, 0, width, height);
+
+  const shiftPx = (layout.shiftX ?? 0) * width;
+  ctx.drawImage(template, shiftPx, 0, width, height);
 
   const scaleX = width / STRIP_W;
   const scaleY = height / STRIP_H;

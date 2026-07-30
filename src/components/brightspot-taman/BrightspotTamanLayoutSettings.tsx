@@ -26,6 +26,7 @@ const FIELDS: {
   max: number;
   step: number;
 }[] = [
+  { key: "shiftX", label: "Geser X", min: -0.15, max: 0.15, step: 0.005 },
   { key: "left", label: "Left", min: 0, max: 0.4, step: 0.005 },
   { key: "size", label: "Size", min: 0.4, max: 0.95, step: 0.005 },
   { key: "top", label: "Top", min: 0, max: 0.2, step: 0.005 },
