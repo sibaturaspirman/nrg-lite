@@ -1,0 +1,29 @@
+.bt-template-swiper .swiper {
+  height: 100%;
+  padding-bottom: 2.8cqw;
+}
+
+.bt-template-swiper .swiper-slide {
+  opacity: 0.55;
+  transform: scale(0.88);
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.bt-template-swiper .swiper-slide-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bt-template-swiper .swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.85;
+  width: max(8px, 0.7cqw);
+  height: max(8px, 0.7cqw);
+}
+
+.bt-template-swiper .swiper-pagination-bullet-active {
+  background: #e10600;
+  opacity: 1;
+}

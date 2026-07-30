@@ -4,12 +4,79 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type UseCamera2Options = {
   facingMode?: "user" | "environment";
+  /** Preferred capture size. Browser will fall back if unsupported. */
   width?: number;
   height?: number;
 };
 
+/** Highest → lowest; getUserMedia tries each until one succeeds. */
+const RESOLUTION_LADDER = [
+  { width: 3840, height: 2160 }, // 4K UHD
+  { width: 2560, height: 1440 }, // 2K / QHD
+  { width: 1920, height: 1080 }, // 1080p
+  { width: 1280, height: 720 }, // 720p fallback
+] as const;
+
+async function getUserMediaWithFallback(
+  facingMode: "user" | "environment",
+  preferred?: { width: number; height: number },
+): Promise<MediaStream> {
+  const ladder = preferred
+    ? [
+        preferred,
+        ...RESOLUTION_LADDER.filter(
+          (r) =>
+            !(r.width === preferred.width && r.height === preferred.height),
+        ),
+      ]
+    : [...RESOLUTION_LADDER];
+
+  let lastError: unknown;
+
+  for (const res of ladder) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: res.width },
+          height: { ideal: res.height },
+        },
+        audio: false,
+      });
+    } catch (e) {
+      lastError = e;
+    }
+
+    // Also try swapped (portrait) ideal for devices that expose portrait modes
+    if (res.width !== res.height) {
+      try {
+        return await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: res.height },
+            height: { ideal: res.width },
+          },
+          audio: false,
+        });
+      } catch (e) {
+        lastError = e;
+      }
+    }
+  }
+
+  // Last resort: any camera at any resolution
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facingMode } },
+      audio: false,
+    });
+  } catch (e) {
+    throw lastError ?? e;
+  }
+}
+
 export function useCamera2(options: UseCamera2Options = {}) {
-  const { facingMode = "user", width = 1080, height = 1920 } = options;
+  const { facingMode = "user", width, height } = options;
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,14 +92,9 @@ export function useCamera2(options: UseCamera2Options = {}) {
     setError(null);
     stop();
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode,
-          width: { ideal: width },
-          height: { ideal: height },
-        },
-        audio: false,
-      });
+      const preferred =
+        width && height ? { width, height } : undefined;
+      const stream = await getUserMediaWithFallback(facingMode, preferred);
       streamRef.current = stream;
       const el = videoRef.current;
       if (el) {
