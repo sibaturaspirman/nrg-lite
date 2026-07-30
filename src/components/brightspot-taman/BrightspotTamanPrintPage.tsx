@@ -3,53 +3,29 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  BRIGHTSPOT_TAMAN_PHOTO_KEY,
-  BRIGHTSPOT_TAMAN_PRINT_KEY,
-} from "@/components/brightspot-taman/BrightspotTamanPhotobooth";
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.decoding = "async";
-    img.onload = () => resolve(img);
-    img.onerror = (e) => reject(e);
-    img.src = src;
-  });
-}
-
-/** Side-by-side duplicate for 4R (dibagi 2 kiri–kanan). */
-async function buildDualStrip(stripSrc: string): Promise<string> {
-  const strip = await loadImage(stripSrc);
-  const w = strip.naturalWidth;
-  const h = strip.naturalHeight;
-  const canvas = document.createElement("canvas");
-  canvas.width = w * 2;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas tidak tersedia");
-  // 1:1 pixel copy — no resampling blur
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(strip, 0, 0, w, h);
-  ctx.drawImage(strip, w, 0, w, h);
-  return canvas.toDataURL("image/jpeg", 1);
-}
+import { getBrightspotTamanPrint } from "@/components/brightspot-taman/brightspotTamanSession";
 
 function printImage(dataUrl: string): Promise<void> {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     iframe.setAttribute("aria-hidden", "true");
     iframe.style.position = "fixed";
-    iframe.style.left = "-10000px";
-    iframe.style.top = "0";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
     iframe.style.width = "0";
     iframe.style.height = "0";
     iframe.style.border = "0";
+    iframe.style.visibility = "hidden";
 
     let done = false;
     const cleanup = () => {
       if (done) return;
       done = true;
+      try {
+        URL.revokeObjectURL(iframe.src);
+      } catch {
+        // ignore
+      }
       try {
         iframe.remove();
       } catch {
@@ -60,22 +36,39 @@ function printImage(dataUrl: string): Promise<void> {
 
     iframe.onload = () => {
       const win = iframe.contentWindow;
-      if (!win) {
+      const doc = iframe.contentDocument;
+      if (!win || !doc) {
         cleanup();
         return;
       }
-      const onDone = () => {
-        win.removeEventListener("afterprint", onDone);
-        setTimeout(cleanup, 200);
-      };
-      win.addEventListener("afterprint", onDone);
-      setTimeout(cleanup, 60000);
-      try {
-        win.focus();
-        win.print();
-      } catch {
+
+      const img = doc.createElement("img");
+      img.alt = "";
+      img.style.display = "block";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "fill";
+
+      const onAfterPrint = () => {
+        win.removeEventListener("afterprint", onAfterPrint);
         cleanup();
-      }
+      };
+      win.addEventListener("afterprint", onAfterPrint);
+
+      img.onload = () => {
+        try {
+          win.focus();
+          // In Chromium, print() blocks until the dialog is closed.
+          win.print();
+        } catch {
+          // ignore
+        }
+        // Fallback if afterprint never fires (some WebViews / kiosk browsers)
+        setTimeout(cleanup, 300);
+      };
+      img.onerror = () => cleanup();
+      doc.body.appendChild(img);
+      img.src = dataUrl;
     };
 
     const html = `<!DOCTYPE html>
@@ -86,17 +79,9 @@ function printImage(dataUrl: string): Promise<void> {
     <style>
       @page { size: 4in 6in; margin: 0; }
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
-      img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: fill;
-      }
     </style>
   </head>
-  <body>
-    <img src="${dataUrl}" alt="" />
-  </body>
+  <body></body>
 </html>`;
     const blob = new Blob([html], { type: "text/html" });
     iframe.src = URL.createObjectURL(blob);
@@ -111,60 +96,37 @@ export function BrightspotTamanPrintPage() {
     "loading",
   );
   const started = useRef(false);
+  const navigated = useRef(false);
 
   const goResult = useCallback(() => {
+    if (navigated.current) return;
+    navigated.current = true;
     router.push("/brightspot-taman/result");
   }, [router]);
 
   useEffect(() => {
+    // Run once — do NOT cancel navigation on Strict Mode remount cleanup
     if (started.current) return;
     started.current = true;
 
-    let strip: string | null = null;
-    let cachedDual: string | null = null;
-    try {
-      strip = sessionStorage.getItem(BRIGHTSPOT_TAMAN_PHOTO_KEY);
-      cachedDual = sessionStorage.getItem(BRIGHTSPOT_TAMAN_PRINT_KEY);
-    } catch {
-      strip = null;
-    }
-    if (!strip && !cachedDual) {
+    const dual = getBrightspotTamanPrint();
+    if (!dual) {
       router.replace("/brightspot-taman/template");
       return;
     }
 
-    let cancelled = false;
+    setPreview(dual);
+    setStatus("printing");
 
-    (async () => {
+    void (async () => {
       try {
-        // Prefer dual built from the confirmed template strip
-        const dual =
-          cachedDual ??
-          (strip ? await buildDualStrip(strip) : null);
-        if (!dual) throw new Error("Print data missing");
-        if (cancelled) return;
-        setPreview(dual);
-        if (!cachedDual) {
-          try {
-            sessionStorage.setItem(BRIGHTSPOT_TAMAN_PRINT_KEY, dual);
-          } catch {
-            // quota — still print from memory
-          }
-        }
-        setStatus("printing");
         await printImage(dual);
-        if (cancelled) return;
         setStatus("done");
         goResult();
       } catch {
-        if (cancelled) return;
         setStatus("error");
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [router, goResult]);
 
   useEffect(() => {

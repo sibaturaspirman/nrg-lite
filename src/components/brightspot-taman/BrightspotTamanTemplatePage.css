@@ -40,3 +40,50 @@
   background: #e10600;
   opacity: 1;
 }
+
+/* Large kiosk-friendly layout settings sliders (1080×1920) */
+.bt-layout-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  cursor: pointer;
+}
+
+.bt-layout-range::-webkit-slider-runnable-track {
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.bt-layout-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 64px;
+  height: 64px;
+  margin-top: -18px;
+  border-radius: 50%;
+  background: #e10600;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+}
+
+.bt-layout-range::-moz-range-track {
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.bt-layout-range::-moz-range-thumb {
+  width: 64px;
+  height: 64px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #e10600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+}

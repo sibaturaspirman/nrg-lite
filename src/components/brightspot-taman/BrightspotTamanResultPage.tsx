@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
-  BRIGHTSPOT_TAMAN_PHOTO_KEY,
   BRIGHTSPOT_TAMAN_PHOTO_URL_KEY,
 } from "@/components/brightspot-taman/BrightspotTamanPhotobooth";
+import { getBrightspotTamanPhoto } from "@/components/brightspot-taman/brightspotTamanSession";
 import { uploadPhoto } from "@/lib/uploadPhoto";
 
 /** Matches strip template aspect (1182 / 3544). */
@@ -78,14 +78,13 @@ export function BrightspotTamanResultPage() {
   );
 
   useEffect(() => {
-    let dataUrl: string | null = null;
     let cachedUploadUrl: string | null = null;
     try {
-      dataUrl = sessionStorage.getItem(BRIGHTSPOT_TAMAN_PHOTO_KEY);
       cachedUploadUrl = sessionStorage.getItem(BRIGHTSPOT_TAMAN_PHOTO_URL_KEY);
     } catch {
-      dataUrl = null;
+      cachedUploadUrl = null;
     }
+    const dataUrl = getBrightspotTamanPhoto();
     if (!dataUrl) {
       router.replace("/brightspot-taman");
       return;

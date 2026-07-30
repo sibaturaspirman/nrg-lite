@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setBrightspotTamanShots } from "@/components/brightspot-taman/brightspotTamanSession";
 import { useCamera2 } from "@/hooks/useCamera2";
 
-const COUNTDOWN_SECONDS = 3;
+const COUNTDOWN_SECONDS = 5;
 const TOTAL_SHOTS = 3;
+/** Brief pause after a shot before the next auto-countdown starts. */
+const BETWEEN_SHOTS_MS = 700;
 /** Target aspect for saved shots (1:1, matches preview). */
 const OUTPUT_RATIO = 1;
 /** Cap longest edge so 4K streams don't explode sessionStorage. */
@@ -17,6 +20,8 @@ export const BRIGHTSPOT_TAMAN_PHOTO_URL_KEY = "brightspotTamanUploadedUrl";
 export const BRIGHTSPOT_TAMAN_SHOTS_KEY = "brightspotTamanShots";
 /** Dual left+right strip canvas for 4R print (dibagi 2). */
 export const BRIGHTSPOT_TAMAN_PRINT_KEY = "brightspotTamanPrint";
+/** Selected template index (0–2) for print rebuild. */
+export const BRIGHTSPOT_TAMAN_TEMPLATE_INDEX_KEY = "brightspotTamanTemplateIndex";
 
 function captureFrame(
   video: HTMLVideoElement,
@@ -103,6 +108,11 @@ export function BrightspotTamanPhotobooth() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const shotsRef = useRef(shots);
   shotsRef.current = shots;
+  /** Next slot to fill: 0 → 1 → 2 */
+  const nextSlotRef = useRef(0);
+  const capturingRef = useRef(false);
+  const sessionStartedRef = useRef(false);
+  const beginCountdownRef = useRef<() => void>(() => {});
 
   const shotCount = shots.filter(Boolean).length;
   const allDone = shotCount >= TOTAL_SHOTS;
@@ -125,73 +135,99 @@ export function BrightspotTamanPhotobooth() {
 
   const finishSession = useCallback(
     (finalShots: string[]) => {
+      setBrightspotTamanShots(finalShots);
       try {
-        sessionStorage.setItem(
-          BRIGHTSPOT_TAMAN_SHOTS_KEY,
-          JSON.stringify(finalShots),
-        );
-        sessionStorage.setItem(BRIGHTSPOT_TAMAN_PHOTO_KEY, finalShots[0] ?? "");
         sessionStorage.removeItem(BRIGHTSPOT_TAMAN_PHOTO_URL_KEY);
         sessionStorage.removeItem(BRIGHTSPOT_TAMAN_PRINT_KEY);
+        sessionStorage.removeItem(BRIGHTSPOT_TAMAN_TEMPLATE_INDEX_KEY);
+        sessionStorage.removeItem(BRIGHTSPOT_TAMAN_PHOTO_KEY);
       } catch {
-        // sessionStorage may fail; navigate anyway
+        // ignore
       }
       router.push("/brightspot-taman/template");
     },
     [router],
   );
 
-  const takePhoto = useCallback(async () => {
+  const takePhoto = useCallback(() => {
+    if (capturingRef.current) return;
     const video = videoRef.current;
-    if (!video || !ready || busy) return;
+    if (!video || !ready) return;
 
-    const current = shotsRef.current;
-    const nextIndex = current.findIndex((s) => s === null);
-    if (nextIndex === -1) return;
+    const slot = nextSlotRef.current;
+    if (slot < 0 || slot >= TOTAL_SHOTS) return;
 
+    capturingRef.current = true;
     setBusy(true);
     setFlash(true);
-    try {
-      const dataUrl = captureFrame(video, mirror);
-      if (!dataUrl) return;
 
-      const nextShots = [...current];
-      nextShots[nextIndex] = dataUrl;
-      setShots(nextShots);
-
-      if (nextShots.every(Boolean)) {
-        setTimeout(() => {
-          finishSession(nextShots.filter((s): s is string => Boolean(s)));
-        }, 500);
-      }
-    } finally {
-      setTimeout(() => setFlash(false), 180);
+    const dataUrl = captureFrame(video, mirror);
+    if (!dataUrl) {
+      capturingRef.current = false;
       setBusy(false);
+      setTimeout(() => setFlash(false), 180);
+      return;
     }
-  }, [videoRef, ready, busy, mirror, finishSession]);
+
+    // Lock this slot immediately so a double-fire can't reuse it
+    nextSlotRef.current = slot + 1;
+
+    const nextShots = [...shotsRef.current];
+    nextShots[slot] = dataUrl;
+    shotsRef.current = nextShots;
+    setShots(nextShots);
+    setTimeout(() => setFlash(false), 180);
+
+    if (slot + 1 >= TOTAL_SHOTS) {
+      setTimeout(() => {
+        finishSession(nextShots.filter((s): s is string => Boolean(s)));
+      }, 500);
+      return;
+    }
+
+    setTimeout(() => {
+      capturingRef.current = false;
+      setBusy(false);
+      beginCountdownRef.current();
+    }, BETWEEN_SHOTS_MS);
+  }, [videoRef, ready, mirror, finishSession]);
 
   const beginCountdown = useCallback(() => {
-    if (!ready || countdown !== null || busy || allDone) return;
+    if (!ready || timerRef.current || allDone || capturingRef.current) return;
+
     clearTimer();
-    setCountdown(COUNTDOWN_SECONDS);
+    let remaining = COUNTDOWN_SECONDS;
+    setCountdown(remaining);
+
     timerRef.current = setInterval(() => {
-      setCountdown((n) => {
-        if (n === null) {
-          clearTimer();
-          return null;
-        }
-        if (n <= 1) {
-          clearTimer();
-          queueMicrotask(() => {
-            void takePhoto();
-            setCountdown(null);
-          });
-          return null;
-        }
-        return n - 1;
-      });
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearTimer();
+        setCountdown(null);
+        takePhoto();
+      } else {
+        setCountdown(remaining);
+      }
     }, 1000);
-  }, [ready, countdown, busy, allDone, clearTimer, takePhoto]);
+  }, [ready, allDone, clearTimer, takePhoto]);
+
+  beginCountdownRef.current = beginCountdown;
+
+  /** User starts once — slot 1, then auto slot 2 & 3. */
+  const startSession = useCallback(() => {
+    if (
+      !ready ||
+      sessionStartedRef.current ||
+      timerRef.current ||
+      busy ||
+      allDone ||
+      nextSlotRef.current > 0
+    ) {
+      return;
+    }
+    sessionStartedRef.current = true;
+    beginCountdown();
+  }, [ready, busy, allDone, beginCountdown]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -205,12 +241,12 @@ export function BrightspotTamanPhotobooth() {
       }
       if (e.key === "Enter") {
         e.preventDefault();
-        beginCountdown();
+        startSession();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [beginCountdown]);
+  }, [startSession]);
 
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black">
@@ -285,8 +321,8 @@ export function BrightspotTamanPhotobooth() {
 
           <button
             type="button"
-            onClick={beginCountdown}
-            disabled={!ready || countdown !== null || busy || allDone}
+            onClick={startSession}
+            disabled={!ready || countdown !== null || busy || allDone || shotCount > 0}
             aria-label="Ambil foto"
             className="mt-auto w-[88%] outline-none transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white/70"
           >
