@@ -32,9 +32,9 @@ const btAssets = [
   "/images/bt/t1.png",
   "/images/bt/t2.png",
   "/images/bt/t3.png",
-  "/images/bt/t1-print.jpg",
-  "/images/bt/t2-print.jpg",
-  "/images/bt/t3-print.jpg",
+  "/images/bt/t1-print-v2.jpg",
+  "/images/bt/t2-print-v2.jpg",
+  "/images/bt/t3-print-v2.jpg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];

@@ -10,11 +10,11 @@ export const TEMPLATES = [
   "/images/bt/t3.png",
 ] as const;
 
-/** Print-only backgrounds (QR placeholder + print art). */
+/** Print-only backgrounds (print art). */
 export const PRINT_TEMPLATES = [
-  "/images/bt/t1-print.jpg",
-  "/images/bt/t2-print.jpg",
-  "/images/bt/t3-print.jpg",
+  "/images/bt/t1-print-v2.jpg",
+  "/images/bt/t2-print-v2.jpg",
+  "/images/bt/t3-print-v2.jpg",
 ] as const;
 
 export type SlotLayout = {
