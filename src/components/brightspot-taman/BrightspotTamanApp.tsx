@@ -10,6 +10,7 @@ import { BrightspotTamanResultPage } from "@/components/brightspot-taman/Brights
 import { BrightspotTamanTemplatePage } from "@/components/brightspot-taman/BrightspotTamanTemplatePage";
 import { BrightspotTamanTncPage } from "@/components/brightspot-taman/BrightspotTamanTncPage";
 import { warmBtAssets } from "@/components/brightspot-taman/btAssetCache";
+import { persistBtDocuments } from "@/components/brightspot-taman/btDocumentCache";
 import {
   getBtPath,
   subscribeBtPath,
@@ -27,6 +28,7 @@ export function BrightspotTamanApp() {
     setPath(getBtPath());
     warmBtRouteCache();
     void warmBtAssets();
+    void persistBtDocuments();
     return subscribeBtPath(setPath);
   }, []);
 

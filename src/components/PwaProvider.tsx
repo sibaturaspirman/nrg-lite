@@ -11,6 +11,11 @@ export function PwaProvider({ children }: { children: ReactNode }) {
       disable={false}
       cacheOnNavigation
       reloadOnOnline={false}
+      options={{
+        // Serwist turbopack bundles SW as ESM — must be module
+        type: "module",
+        scope: "/",
+      }}
     >
       {children}
     </SerwistProvider>
