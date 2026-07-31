@@ -1,11 +1,85 @@
 "use client";
 
-import Image, { type ImageProps } from "next/image";
+import {
+  resolveBtAsset,
+  subscribeBtAssets,
+  warmBtAssets,
+} from "@/components/brightspot-taman/btAssetCache";
+import { useEffect, useState, type ImgHTMLAttributes } from "react";
+
+type BtImageProps = Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  "src" | "width" | "height" | "alt"
+> & {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  /** Accepted for API parity with next/image — ignored (always eager for offline). */
+  fill?: boolean;
+  priority?: boolean;
+  sizes?: string;
+  unoptimized?: boolean;
+};
 
 /**
- * next/image optimizer hits `/_next/image?...` which is NOT in the SW precache.
- * Serve public paths as-is so offline can use `/images/bt/*` from Cache Storage.
+ * Plain <img> + in-memory blob cache.
+ * Avoids `/_next/image` and keeps assets available after SPA remounts offline.
  */
-export function BtImage(props: ImageProps) {
-  return <Image {...props} unoptimized />;
+export function BtImage({
+  src,
+  alt,
+  width,
+  height,
+  fill,
+  className,
+  style,
+  priority,
+  sizes: _sizes,
+  unoptimized: _unoptimized,
+  ...rest
+}: BtImageProps) {
+  const [resolved, setResolved] = useState(() => resolveBtAsset(src));
+
+  useEffect(() => {
+    void warmBtAssets();
+    setResolved(resolveBtAsset(src));
+    return subscribeBtAssets(() => setResolved(resolveBtAsset(src)));
+  }, [src]);
+
+  if (fill) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={resolved}
+        alt={alt}
+        className={className}
+        decoding="async"
+        loading={priority ? "eager" : "lazy"}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          ...style,
+        }}
+        {...rest}
+      />
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={resolved}
+      alt={alt}
+      width={width}
+      height={height}
+      className={className}
+      decoding="async"
+      loading={priority ? "eager" : "lazy"}
+      style={style}
+      {...rest}
+    />
+  );
 }

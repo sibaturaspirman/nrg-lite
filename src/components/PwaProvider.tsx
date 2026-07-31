@@ -7,8 +7,8 @@ export function PwaProvider({ children }: { children: ReactNode }) {
   return (
     <SerwistProvider
       swUrl="/serwist/sw.js"
-      // Enable in production builds; skip noisy SW reloads during local next dev
-      disable={process.env.NODE_ENV === "development"}
+      // Keep SW on in dev too — Brightspot Taman must work offline end-to-end
+      disable={false}
       cacheOnNavigation
       reloadOnOnline={false}
     >
