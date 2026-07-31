@@ -38,7 +38,7 @@ export function BrightspotTamanTncPage() {
           className="group absolute inset-0 z-10 flex items-center justify-center px-[6cqw] outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
           <Image
-            src="/images/bt/tnc-new.png"
+            src="/images/bt/tnc-new2.png"
             alt="Before you continue — tap OK to agree"
             width={1080}
             height={1600}

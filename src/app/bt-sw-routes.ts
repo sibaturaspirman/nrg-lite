@@ -16,6 +16,7 @@ export const BT_ASSETS = [
   "/images/bt/logo.png",
   "/images/bt/tnc.png",
   "/images/bt/tnc-new.png",
+  "/images/bt/tnc-new2.png",
   "/images/bt/ready-moment.png",
   "/images/bt/btn-ready.png",
   "/images/bt/btn-capture.png",
