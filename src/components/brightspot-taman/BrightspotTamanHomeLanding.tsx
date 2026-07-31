@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Great_Vibes, Montserrat } from "next/font/google";
+import { btPush } from "@/components/brightspot-taman/btNav";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -17,18 +16,17 @@ const electricScript = Great_Vibes({
 });
 
 export function BrightspotTamanHomeLanding() {
-  const router = useRouter();
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/brightspot-taman/tnc");
+        btPush("/brightspot-taman/tnc");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, []);
+
   return (
     <div
       className={`flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black ${montserrat.className}`}
@@ -46,8 +44,9 @@ export function BrightspotTamanHomeLanding() {
           className="object-cover"
         />
 
-        <Link
-          href="/brightspot-taman/tnc"
+        <button
+          type="button"
+          onClick={() => btPush("/brightspot-taman/tnc")}
           aria-label="Mulai photobooth"
           className="group absolute inset-0 z-10 flex flex-col items-center justify-center px-[6cqw] text-center text-white outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
@@ -68,7 +67,7 @@ export function BrightspotTamanHomeLanding() {
             priority
             className="absolute bottom-[15cqw] left-1/2 h-auto w-[80vw] -translate-x-1/2 object-contain transition-transform duration-200 group-hover:scale-[1.02] group-active:scale-[0.98]"
           />
-        </Link>
+        </button>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -13,6 +12,7 @@ import {
   BRIGHTSPOT_TAMAN_PHOTO_URL_KEY,
   BRIGHTSPOT_TAMAN_TEMPLATE_INDEX_KEY,
 } from "@/components/brightspot-taman/BrightspotTamanPhotobooth";
+import { btPush, btReplace } from "@/components/brightspot-taman/btNav";
 import {
   clearBrightspotTamanShots,
   getBrightspotTamanShots,
@@ -94,7 +94,6 @@ function StripPreview({
 }
 
 export function BrightspotTamanTemplatePage() {
-  const router = useRouter();
   const [shots, setShots] = useState<string[] | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -103,11 +102,11 @@ export function BrightspotTamanTemplatePage() {
   useEffect(() => {
     const parsed = getBrightspotTamanShots();
     if (!parsed) {
-      router.replace("/brightspot-taman/booth");
+      btReplace("/brightspot-taman/booth");
       return;
     }
     setShots(parsed);
-  }, [router]);
+  }, []);
 
   const confirmTemplate = useCallback(async () => {
     if (!shots || busy) return;
@@ -137,11 +136,11 @@ export function BrightspotTamanTemplatePage() {
       setBrightspotTamanPhoto(strip);
       setBrightspotTamanPrint(dual);
       clearBrightspotTamanShots();
-      router.push("/brightspot-taman/print");
+      btPush("/brightspot-taman/print");
     } catch {
       setBusy(false);
     }
-  }, [shots, busy, activeIndex, router, layouts]);
+  }, [shots, busy, activeIndex, layouts]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

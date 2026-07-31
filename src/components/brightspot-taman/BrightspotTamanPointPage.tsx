@@ -1,23 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { btPush } from "@/components/brightspot-taman/btNav";
 
 export function BrightspotTamanPointPage() {
-  const router = useRouter();
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/brightspot-taman");
+        btPush("/brightspot-taman");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, []);
 
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black">
@@ -34,8 +31,9 @@ export function BrightspotTamanPointPage() {
           className="object-cover"
         />
 
-        <Link
-          href="/brightspot-taman"
+        <button
+          type="button"
+          onClick={() => btPush("/brightspot-taman")}
           aria-label="Selesai, kembali ke beranda"
           className="group absolute inset-0 z-10 flex items-center justify-center px-[6cqw] outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
@@ -47,7 +45,7 @@ export function BrightspotTamanPointPage() {
             priority
             className="h-auto w-[90vw] object-contain transition-transform duration-200 group-hover:scale-[1.01] group-active:scale-[0.99]"
           />
-        </Link>
+        </button>
       </div>
     </div>
   );

@@ -1,23 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { btPush } from "@/components/brightspot-taman/btNav";
 
 export function BrightspotTamanReadyPage() {
-  const router = useRouter();
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        router.push("/brightspot-taman/booth");
+        btPush("/brightspot-taman/booth");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, []);
+
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black">
       <div
@@ -33,8 +31,9 @@ export function BrightspotTamanReadyPage() {
           className="object-cover"
         />
 
-        <Link
-          href="/brightspot-taman/booth"
+        <button
+          type="button"
+          onClick={() => btPush("/brightspot-taman/booth")}
           aria-label="Siap, lanjutkan ke photobooth"
           className="group absolute inset-0 z-10 flex items-center justify-center px-[6cqw] outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
@@ -46,7 +45,7 @@ export function BrightspotTamanReadyPage() {
             priority
             className="h-auto w-[80vw] object-contain transition-transform duration-200 group-hover:scale-[1.01] group-active:scale-[0.99]"
           />
-        </Link>
+        </button>
       </div>
     </div>
   );

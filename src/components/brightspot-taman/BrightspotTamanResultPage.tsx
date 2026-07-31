@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {
   BRIGHTSPOT_TAMAN_PHOTO_URL_KEY,
 } from "@/components/brightspot-taman/BrightspotTamanPhotobooth";
+import { btPush, btReplace } from "@/components/brightspot-taman/btNav";
 import { getBrightspotTamanPhoto } from "@/components/brightspot-taman/brightspotTamanSession";
 import { uploadPhoto } from "@/lib/uploadPhoto";
 
@@ -25,7 +25,6 @@ async function makeQr(target: string) {
 }
 
 export function BrightspotTamanResultPage() {
-  const router = useRouter();
   const [photo, setPhoto] = useState<string | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -33,8 +32,8 @@ export function BrightspotTamanResultPage() {
   const [online, setOnline] = useState(true);
 
   const goPoint = useCallback(() => {
-    router.push("/brightspot-taman/point");
-  }, [router]);
+    btPush("/brightspot-taman/point");
+  }, []);
 
   useEffect(() => {
     const sync = () => setOnline(navigator.onLine);
@@ -86,7 +85,7 @@ export function BrightspotTamanResultPage() {
     }
     const dataUrl = getBrightspotTamanPhoto();
     if (!dataUrl) {
-      router.replace("/brightspot-taman");
+      btReplace("/brightspot-taman");
       return;
     }
     setPhoto(dataUrl);
@@ -110,7 +109,7 @@ export function BrightspotTamanResultPage() {
     void runUpload(dataUrl, controller.signal);
 
     return () => controller.abort();
-  }, [router, runUpload, online]);
+  }, [runUpload, online]);
 
   const retry = () => {
     if (!photo) return;

@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { btPush } from "@/components/brightspot-taman/btNav";
 import { setBrightspotTamanShots } from "@/components/brightspot-taman/brightspotTamanSession";
 import { useCamera2 } from "@/hooks/useCamera2";
 
@@ -94,7 +94,6 @@ function SlotPlaceholder({ index }: { index: number }) {
 }
 
 export function BrightspotTamanPhotobooth() {
-  const router = useRouter();
   const { videoRef, start, stop, error, ready } = useCamera2({
     facingMode: "user",
     width: 3840,
@@ -144,9 +143,9 @@ export function BrightspotTamanPhotobooth() {
       } catch {
         // ignore
       }
-      router.push("/brightspot-taman/template");
+      btPush("/brightspot-taman/template");
     },
-    [router],
+    [],
   );
 
   const takePhoto = useCallback(() => {

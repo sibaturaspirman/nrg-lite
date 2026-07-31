@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { btPush, btReplace } from "@/components/brightspot-taman/btNav";
 import { getBrightspotTamanPrint } from "@/components/brightspot-taman/brightspotTamanSession";
 
 function printImage(dataUrl: string): Promise<void> {
@@ -90,7 +90,6 @@ function printImage(dataUrl: string): Promise<void> {
 }
 
 export function BrightspotTamanPrintPage() {
-  const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "printing" | "done" | "error">(
     "loading",
@@ -101,8 +100,8 @@ export function BrightspotTamanPrintPage() {
   const goResult = useCallback(() => {
     if (navigated.current) return;
     navigated.current = true;
-    router.push("/brightspot-taman/result");
-  }, [router]);
+    btPush("/brightspot-taman/result");
+  }, []);
 
   useEffect(() => {
     // Run once — do NOT cancel navigation on Strict Mode remount cleanup
@@ -111,7 +110,7 @@ export function BrightspotTamanPrintPage() {
 
     const dual = getBrightspotTamanPrint();
     if (!dual) {
-      router.replace("/brightspot-taman/template");
+      btReplace("/brightspot-taman/template");
       return;
     }
 
@@ -127,7 +126,7 @@ export function BrightspotTamanPrintPage() {
         setStatus("error");
       }
     })();
-  }, [router, goResult]);
+  }, [goResult]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
