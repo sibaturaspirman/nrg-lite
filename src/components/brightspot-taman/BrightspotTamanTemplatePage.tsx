@@ -28,6 +28,7 @@ import {
   buildDualPrintStrip,
   compositeStrip,
   photoSlotRect,
+  warmStripAssets,
   type SlotLayout,
 } from "@/components/brightspot-taman/brightspotTamanStrip";
 
@@ -100,6 +101,7 @@ export function BrightspotTamanTemplatePage() {
   const { layouts, setLayouts } = useSlotLayouts();
 
   useEffect(() => {
+    warmStripAssets();
     const parsed = getBrightspotTamanShots();
     if (!parsed) {
       btReplace("/brightspot-taman/booth");

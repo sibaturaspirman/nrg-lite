@@ -3,91 +3,8 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { btPush, btReplace } from "@/components/brightspot-taman/btNav";
+import { printImage } from "@/components/brightspot-taman/btPrint";
 import { getBrightspotTamanPrint } from "@/components/brightspot-taman/brightspotTamanSession";
-
-function printImage(dataUrl: string): Promise<void> {
-  return new Promise((resolve) => {
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("aria-hidden", "true");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    iframe.style.visibility = "hidden";
-
-    let done = false;
-    const cleanup = () => {
-      if (done) return;
-      done = true;
-      try {
-        URL.revokeObjectURL(iframe.src);
-      } catch {
-        // ignore
-      }
-      try {
-        iframe.remove();
-      } catch {
-        // ignore
-      }
-      resolve();
-    };
-
-    iframe.onload = () => {
-      const win = iframe.contentWindow;
-      const doc = iframe.contentDocument;
-      if (!win || !doc) {
-        cleanup();
-        return;
-      }
-
-      const img = doc.createElement("img");
-      img.alt = "";
-      img.style.display = "block";
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = "fill";
-
-      const onAfterPrint = () => {
-        win.removeEventListener("afterprint", onAfterPrint);
-        cleanup();
-      };
-      win.addEventListener("afterprint", onAfterPrint);
-
-      img.onload = () => {
-        try {
-          win.focus();
-          // In Chromium, print() blocks until the dialog is closed.
-          win.print();
-        } catch {
-          // ignore
-        }
-        // Fallback if afterprint never fires (some WebViews / kiosk browsers)
-        setTimeout(cleanup, 300);
-      };
-      img.onerror = () => cleanup();
-      doc.body.appendChild(img);
-      img.src = dataUrl;
-    };
-
-    const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Print 4R</title>
-    <style>
-      @page { size: 4in 6in; margin: 0; }
-      html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
-    </style>
-  </head>
-  <body></body>
-</html>`;
-    const blob = new Blob([html], { type: "text/html" });
-    iframe.src = URL.createObjectURL(blob);
-    document.body.appendChild(iframe);
-  });
-}
 
 export function BrightspotTamanPrintPage() {
   const [preview, setPreview] = useState<string | null>(null);
@@ -96,6 +13,8 @@ export function BrightspotTamanPrintPage() {
   );
   const started = useRef(false);
   const navigated = useRef(false);
+  const printing = useRef(false);
+  const dualRef = useRef<string | null>(null);
 
   const goResult = useCallback(() => {
     if (navigated.current) return;
@@ -103,8 +22,23 @@ export function BrightspotTamanPrintPage() {
     btPush("/brightspot-taman/result");
   }, []);
 
+  const runPrint = useCallback(async () => {
+    const dual = dualRef.current;
+    if (!dual || printing.current) return;
+    printing.current = true;
+    setStatus("printing");
+    try {
+      await printImage(dual);
+      setStatus("done");
+      goResult();
+    } catch {
+      setStatus("error");
+    } finally {
+      printing.current = false;
+    }
+  }, [goResult]);
+
   useEffect(() => {
-    // Run once — do NOT cancel navigation on Strict Mode remount cleanup
     if (started.current) return;
     started.current = true;
 
@@ -114,30 +48,41 @@ export function BrightspotTamanPrintPage() {
       return;
     }
 
+    dualRef.current = dual;
     setPreview(dual);
-    setStatus("printing");
 
-    void (async () => {
-      try {
-        await printImage(dual);
-        setStatus("done");
-        goResult();
-      } catch {
-        setStatus("error");
-      }
-    })();
-  }, [goResult]);
+    // Auto-print as soon as the print screen is shown.
+    // (Template "Next" already did heavy work; this call is the dialog trigger.)
+    void runPrint();
+  }, [runPrint]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
+        if (status === "error") {
+          void runPrint();
+          return;
+        }
         goResult();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goResult]);
+  }, [goResult, runPrint, status]);
+
+  const onTap = () => {
+    // Retry with a fresh user gesture if auto-print was blocked (common in PWA offline)
+    if (status === "error" || status === "loading") {
+      void runPrint();
+      return;
+    }
+    if (status === "printing") {
+      void runPrint();
+      return;
+    }
+    goResult();
+  };
 
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-black">
@@ -156,7 +101,7 @@ export function BrightspotTamanPrintPage() {
 
         <button
           type="button"
-          onClick={goResult}
+          onClick={onTap}
           className="absolute inset-[2.8cqw] z-10 flex flex-col items-center justify-center gap-[4cqw] px-[4cqw] outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
           {preview ? (
@@ -182,9 +127,9 @@ export function BrightspotTamanPrintPage() {
 
           <p className="text-center text-[clamp(0.75rem,3.2cqw,1.1rem)] font-semibold uppercase tracking-[0.14em] text-white">
             {status === "error"
-              ? "Print gagal — tap untuk lanjut"
+              ? "Print gagal — tap untuk coba lagi"
               : status === "printing"
-                ? "Printing…"
+                ? "Printing… (tap untuk print ulang)"
                 : status === "done"
                   ? "Selesai"
                   : "Menyiapkan…"}

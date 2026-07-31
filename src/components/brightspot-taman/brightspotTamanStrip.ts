@@ -145,9 +145,39 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
     const img = new window.Image();
     img.decoding = "async";
     img.onload = () => resolve(img);
-    img.onerror = (e) => reject(e);
+    img.onerror = () => {
+      // Offline / SW: retry via fetch so Cache Storage can satisfy the request
+      void fetch(src, { credentials: "same-origin", cache: "force-cache" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Failed to load ${src}`);
+          return res.blob();
+        })
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          const img2 = new window.Image();
+          img2.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(img2);
+          };
+          img2.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error(`Failed to load ${src}`));
+          };
+          img2.src = url;
+        })
+        .catch(reject);
+    };
     img.src = src;
   });
+}
+
+/** Warm HTTP / SW cache for template + print art (call while online or from cache). */
+export function warmStripAssets() {
+  for (const src of [...TEMPLATES, ...PRINT_TEMPLATES]) {
+    void fetch(src, { credentials: "same-origin", cache: "force-cache" }).catch(
+      () => {},
+    );
+  }
 }
 
 function drawCover(
