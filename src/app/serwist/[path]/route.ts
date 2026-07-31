@@ -1,18 +1,16 @@
 import { spawnSync } from "node:child_process";
 import { createSerwistRoute } from "@serwist/turbopack";
-import {
-  BT_ASSETS,
-  BT_ROUTES,
-} from "@/components/brightspot-taman/btNav";
+import { BT_ASSETS, BT_ROUTES } from "@/app/bt-sw-routes";
 
 const revision =
   spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).stdout?.trim() ||
   crypto.randomUUID();
 
-const btPages = [...BT_ROUTES, "/brightspot-taman/"] as const;
+const btPages = [...BT_ROUTES] as const;
 
 const btAssets = [
   ...BT_ASSETS,
+  "/offline-boot.html",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ] as const;

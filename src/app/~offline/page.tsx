@@ -3,17 +3,16 @@
 import { useEffect } from "react";
 
 /**
- * Legacy offline fallback URL — immediately boot into the photobooth app
- * so offline users never get stuck on "You're offline".
+ * Legacy Serwist offline URL — boot into the photobooth, never show
+ * a "You're offline" dead-end.
  */
 export default function OfflinePage() {
   useEffect(() => {
-    // Hard navigation — works offline via SW navigateFallback / precache
     window.location.replace("/brightspot-taman");
   }, []);
 
   return (
-    <div className="flex min-h-[100dvh] w-full items-center justify-center bg-black text-white/70">
+    <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#1a0508] text-white/70">
       Membuka photobooth…
     </div>
   );
