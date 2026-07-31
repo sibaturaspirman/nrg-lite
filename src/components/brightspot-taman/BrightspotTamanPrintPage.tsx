@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BtImage as Image } from "@/components/brightspot-taman/BtImage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { btPush, btReplace } from "@/components/brightspot-taman/btNav";
 import { printImage } from "@/components/brightspot-taman/btPrint";

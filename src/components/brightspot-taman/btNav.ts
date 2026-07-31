@@ -70,10 +70,31 @@ export function subscribeBtPath(listener: Listener): () => void {
   };
 }
 
+/** Static assets that must work offline (matched by SW precache). */
+export const BT_ASSETS = [
+  "/images/bt/bg.jpg",
+  "/images/bt/logo.png",
+  "/images/bt/tnc.png",
+  "/images/bt/ready-moment.png",
+  "/images/bt/btn-ready.png",
+  "/images/bt/btn-capture.png",
+  "/images/bt/btn-next.png",
+  "/images/bt/title-booth.png",
+  "/images/bt/title-template.png",
+  "/images/bt/discover.png",
+  "/images/bt/you-got.png",
+  "/images/bt/t1.png",
+  "/images/bt/t2.png",
+  "/images/bt/t3.png",
+  "/images/bt/t1-print-v2.jpg",
+  "/images/bt/t2-print-v2.jpg",
+  "/images/bt/t3-print-v2.jpg",
+] as const;
+
 /** Warm HTTP cache / SW for hard-reload offline support. */
 export function warmBtRouteCache() {
   if (typeof window === "undefined") return;
-  for (const url of BT_ROUTES) {
+  for (const url of [...BT_ROUTES, ...BT_ASSETS]) {
     void fetch(url, { credentials: "same-origin", cache: "force-cache" }).catch(
       () => {},
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BtImage as Image } from "@/components/brightspot-taman/BtImage";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import {

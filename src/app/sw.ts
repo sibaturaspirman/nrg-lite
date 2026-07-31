@@ -2,7 +2,7 @@
 /// <reference lib="webworker" />
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { NetworkFirst, Serwist } from "serwist";
+import { CacheFirst, NetworkFirst, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -37,6 +37,15 @@ const serwist = new Serwist({
       handler: new NetworkFirst({
         cacheName: "bt-navigations",
         networkTimeoutSeconds: 2,
+      }),
+    },
+    // BT static images — always prefer cache (precache + runtime)
+    {
+      matcher({ url }) {
+        return url.pathname.startsWith("/images/bt/");
+      },
+      handler: new CacheFirst({
+        cacheName: "bt-images",
       }),
     },
     ...defaultCache,

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BtImage as Image } from "@/components/brightspot-taman/BtImage";
 import { useEffect } from "react";
 import { Great_Vibes, Montserrat } from "next/font/google";
 import { btPush } from "@/components/brightspot-taman/btNav";
