@@ -7,6 +7,7 @@ const revision =
 
 const btPages = [
   "/brightspot-taman",
+  "/brightspot-taman/",
   "/brightspot-taman/tnc",
   "/brightspot-taman/ready",
   "/brightspot-taman/booth",
@@ -14,7 +15,6 @@ const btPages = [
   "/brightspot-taman/print",
   "/brightspot-taman/result",
   "/brightspot-taman/point",
-  "/~offline",
 ];
 
 const btAssets = [
