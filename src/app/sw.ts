@@ -9,6 +9,7 @@ import {
   Serwist,
 } from "serwist";
 import { BT_ASSETS, BT_ROUTES } from "./bt-sw-routes";
+import { BUTIK_ASSETS, BUTIK_ROUTES } from "./butik-sw-routes";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -19,7 +20,9 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const OFFLINE_APP = "/brightspot-taman";
+const OFFLINE_BUTIK = "/butik";
 const NAV_CACHE = "bt-navigations";
+const BUTIK_NAV_CACHE = "butik-navigations";
 const IMG_CACHE = "bt-images";
 const NEXT_STATIC_CACHE = "next-static-assets";
 
@@ -31,6 +34,8 @@ const NEXT_STATIC_CACHE = "next-static-assets";
 const STABLE_PRECACHE: PrecacheEntry[] = [
   ...BT_ROUTES.map((url) => ({ url, revision: "bt-stable-1" })),
   ...BT_ASSETS.map((url) => ({ url, revision: "bt-stable-1" })),
+  ...BUTIK_ROUTES.map((url) => ({ url, revision: "butik-stable-1" })),
+  ...BUTIK_ASSETS.map((url) => ({ url, revision: "butik-stable-1" })),
   { url: "/offline-boot.html", revision: "bt-stable-1" },
   { url: "/manifest.webmanifest", revision: "bt-stable-1" },
   { url: "/icons/icon-192.png", revision: "bt-stable-1" },
@@ -88,23 +93,30 @@ async function matchInAllCaches(keys: string[]): Promise<Response | undefined> {
 function navKeysFor(pathname: string): string[] {
   const trimmed = pathname.replace(/\/+$/, "") || "/";
   const withSlash = `${trimmed}/`;
+  const offlineRoot = trimmed.startsWith("/butik")
+    ? OFFLINE_BUTIK
+    : OFFLINE_APP;
   return Array.from(
     new Set([
       pathname,
       trimmed,
       withSlash,
-      OFFLINE_APP,
-      `${OFFLINE_APP}/`,
+      offlineRoot,
+      `${offlineRoot}/`,
       new URL(pathname, self.location.origin).href,
       new URL(trimmed, self.location.origin).href,
-      new URL(OFFLINE_APP, self.location.origin).href,
+      new URL(offlineRoot, self.location.origin).href,
     ]),
   );
 }
 
+function navCacheFor(pathname: string): string {
+  return pathname.startsWith("/butik") ? BUTIK_NAV_CACHE : NAV_CACHE;
+}
+
 async function putNav(pathname: string, response: Response) {
   if (!response.ok) return;
-  const cache = await caches.open(NAV_CACHE);
+  const cache = await caches.open(navCacheFor(pathname));
   const buf = await response.clone().arrayBuffer();
   const headers = new Headers(response.headers);
   headers.set(
@@ -119,9 +131,12 @@ async function putNav(pathname: string, response: Response) {
   }
 }
 
-async function handleBtNavigation(request: Request): Promise<Response> {
+async function handleAppNavigation(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const keys = navKeysFor(url.pathname);
+  const offlineRoot = url.pathname.startsWith("/butik")
+    ? OFFLINE_BUTIK
+    : OFFLINE_APP;
 
   const cached = await matchInAllCaches(keys);
   if (cached) return cached;
@@ -131,7 +146,10 @@ async function handleBtNavigation(request: Request): Promise<Response> {
     if (fresh.ok) await putNav(url.pathname, fresh.clone());
     return fresh;
   } catch {
-    const fallback = await matchInAllCaches([OFFLINE_APP, `${OFFLINE_APP}/`]);
+    const fallback = await matchInAllCaches([
+      offlineRoot,
+      `${offlineRoot}/`,
+    ]);
     if (fallback) return fallback;
 
     return new Response(
@@ -172,12 +190,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  const isBtNav =
-    url.pathname.startsWith("/brightspot-taman") &&
+  const isAppNav =
+    (url.pathname.startsWith("/brightspot-taman") ||
+      url.pathname.startsWith("/butik")) &&
     (request.mode === "navigate" || request.destination === "document");
 
-  if (isBtNav) {
-    event.respondWith(handleBtNavigation(request));
+  if (isAppNav) {
+    event.respondWith(handleAppNavigation(request));
   }
 });
 
@@ -202,6 +221,20 @@ const serwist = new Serwist({
       },
       handler: new NetworkFirst({
         cacheName: NAV_CACHE,
+        networkTimeoutSeconds: 2,
+      }),
+    },
+    {
+      matcher({ request, url }) {
+        return (
+          request.method === "GET" &&
+          url.pathname.startsWith("/butik") &&
+          request.mode !== "navigate" &&
+          request.destination !== "document"
+        );
+      },
+      handler: new NetworkFirst({
+        cacheName: BUTIK_NAV_CACHE,
         networkTimeoutSeconds: 2,
       }),
     },
@@ -238,7 +271,7 @@ const serwist = new Serwist({
 async function seedCaches() {
   const imgCache = await caches.open(IMG_CACHE);
   await Promise.all(
-    BT_ROUTES.map(async (path) => {
+    [...BT_ROUTES, ...BUTIK_ROUTES].map(async (path) => {
       try {
         const res = await fetch(path, { credentials: "same-origin" });
         if (res.ok) await putNav(path, res);
@@ -247,8 +280,9 @@ async function seedCaches() {
       }
     }),
   );
+  const assetSet = new Set<string>([...BT_ASSETS, ...BUTIK_ASSETS]);
   await Promise.all(
-    BT_ASSETS.map(async (path) => {
+    [...assetSet].map(async (path) => {
       try {
         const res = await fetch(path, { credentials: "same-origin" });
         if (res.ok) await imgCache.put(path, res.clone());
