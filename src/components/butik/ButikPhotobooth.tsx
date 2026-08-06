@@ -12,6 +12,7 @@ import {
   setButikPrint,
 } from "@/components/butik/butikSession";
 import {
+  BUTIK_PRINT_TEMPLATE,
   BUTIK_TEMPLATE,
   CAPTURE_H,
   CAPTURE_RATIO,
@@ -159,7 +160,7 @@ export function ButikPhotobooth() {
       const L = layoutsRef.current;
       const [strip, print] = await Promise.all([
         compositeStrip(finalShots, BUTIK_TEMPLATE, L.preview),
-        buildPrintStrip(finalShots, BUTIK_TEMPLATE, L.print),
+        buildPrintStrip(finalShots, BUTIK_PRINT_TEMPLATE, L.print),
       ]);
       try {
         sessionStorage.removeItem(BUTIK_PHOTO_URL_KEY);

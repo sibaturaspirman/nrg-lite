@@ -10,8 +10,10 @@ export const CAPTURE_H = 1104;
 export const CAPTURE_RATIO = CAPTURE_W / CAPTURE_H;
 
 export const BUTIK_TEMPLATE = "/images/bt/t-butik-v2.jpg";
+/** Hi-res art for A5 print. */
+export const BUTIK_PRINT_TEMPLATE = "/images/bt/t-butik.jpg";
 export const TEMPLATES = [BUTIK_TEMPLATE] as const;
-export const PRINT_TEMPLATES = [BUTIK_TEMPLATE] as const;
+export const PRINT_TEMPLATES = [BUTIK_PRINT_TEMPLATE] as const;
 
 export type SlotLayout = {
   /** Grid left inset as fraction of strip width. */
@@ -168,10 +170,12 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export function warmStripAssets() {
-  void fetch(BUTIK_TEMPLATE, {
-    credentials: "same-origin",
-    cache: "force-cache",
-  }).catch(() => {});
+  for (const src of [BUTIK_TEMPLATE, BUTIK_PRINT_TEMPLATE]) {
+    void fetch(src, {
+      credentials: "same-origin",
+      cache: "force-cache",
+    }).catch(() => {});
+  }
 }
 
 function drawCover(
@@ -240,7 +244,7 @@ export async function compositeStrip(
 /** Single A5 newspaper composite (no left/right dual). */
 export async function buildPrintStrip(
   shots: string[],
-  printTemplateSrc: string = BUTIK_TEMPLATE,
+  printTemplateSrc: string = BUTIK_PRINT_TEMPLATE,
   printLayout: SlotLayout = DEFAULT_PRINT_LAYOUT,
 ): Promise<string> {
   return compositeStrip(shots, printTemplateSrc, printLayout);
@@ -249,7 +253,7 @@ export async function buildPrintStrip(
 /** @deprecated use buildPrintStrip — kept for older imports */
 export async function buildDualPrintStrip(
   shots: string[],
-  printTemplateSrc: string = BUTIK_TEMPLATE,
+  printTemplateSrc: string = BUTIK_PRINT_TEMPLATE,
   printLeft: SlotLayout = DEFAULT_PRINT_LAYOUT,
   _printRight?: SlotLayout,
 ): Promise<string> {
