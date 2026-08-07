@@ -10,10 +10,8 @@ export const CAPTURE_H = 1104;
 export const CAPTURE_RATIO = CAPTURE_W / CAPTURE_H;
 
 export const BUTIK_TEMPLATE = "/images/bt/t-butik-v2.jpg";
-/** Hi-res art for A5 print. */
-export const BUTIK_PRINT_TEMPLATE = "/images/bt/t-butik.jpg";
 export const TEMPLATES = [BUTIK_TEMPLATE] as const;
-export const PRINT_TEMPLATES = [BUTIK_PRINT_TEMPLATE] as const;
+export const PRINT_TEMPLATES = [BUTIK_TEMPLATE] as const;
 
 export type SlotLayout = {
   /** Grid left inset as fraction of strip width. */
@@ -29,8 +27,8 @@ export type SlotLayout = {
   /** Vertical gap between rows as fraction of strip height. */
   gapY: number;
   /**
-   * Horizontal shift of template art only (fraction of strip width).
-   * Photos stay fixed. Negative = kiri, positive = kanan.
+   * Horizontal shift of the whole strip (template + photos).
+   * Fraction of strip width. Negative = kiri, positive = kanan.
    */
   shiftX: number;
 };
@@ -170,12 +168,10 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export function warmStripAssets() {
-  for (const src of [BUTIK_TEMPLATE, BUTIK_PRINT_TEMPLATE]) {
-    void fetch(src, {
-      credentials: "same-origin",
-      cache: "force-cache",
-    }).catch(() => {});
-  }
+  void fetch(BUTIK_TEMPLATE, {
+    credentials: "same-origin",
+    cache: "force-cache",
+  }).catch(() => {});
 }
 
 function drawCover(
@@ -235,7 +231,14 @@ export async function compositeStrip(
     if (!shot) continue;
     const img = await loadImage(shot);
     const { left, top, width: pw, height: ph } = photoSlotRect(i, layout);
-    drawCover(ctx, img, left * scaleX, top * scaleY, pw * scaleX, ph * scaleY);
+    drawCover(
+      ctx,
+      img,
+      left * scaleX + shiftPx,
+      top * scaleY,
+      pw * scaleX,
+      ph * scaleY,
+    );
   }
 
   return canvas.toDataURL("image/jpeg", 1);
@@ -244,7 +247,7 @@ export async function compositeStrip(
 /** Single A5 newspaper composite (no left/right dual). */
 export async function buildPrintStrip(
   shots: string[],
-  printTemplateSrc: string = BUTIK_PRINT_TEMPLATE,
+  printTemplateSrc: string = BUTIK_TEMPLATE,
   printLayout: SlotLayout = DEFAULT_PRINT_LAYOUT,
 ): Promise<string> {
   return compositeStrip(shots, printTemplateSrc, printLayout);
@@ -253,7 +256,7 @@ export async function buildPrintStrip(
 /** @deprecated use buildPrintStrip — kept for older imports */
 export async function buildDualPrintStrip(
   shots: string[],
-  printTemplateSrc: string = BUTIK_PRINT_TEMPLATE,
+  printTemplateSrc: string = BUTIK_TEMPLATE,
   printLeft: SlotLayout = DEFAULT_PRINT_LAYOUT,
   _printRight?: SlotLayout,
 ): Promise<string> {

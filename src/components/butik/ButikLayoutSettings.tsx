@@ -25,7 +25,13 @@ const FIELDS: {
   max: number;
   step: number;
 }[] = [
-  { key: "shiftX", label: "Geser X", min: -0.4, max: 0.4, step: 0.005 },
+  {
+    key: "shiftX",
+    label: "Geser kiri/kanan",
+    min: -0.4,
+    max: 0.4,
+    step: 0.005,
+  },
   { key: "left", label: "Left", min: 0, max: 0.4, step: 0.005 },
   { key: "top", label: "Top", min: 0, max: 0.5, step: 0.005 },
   { key: "cellW", label: "Lebar foto", min: 0.2, max: 0.5, step: 0.005 },
