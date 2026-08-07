@@ -1,13 +1,9 @@
 "use client";
 
 import { ButikImage as Image } from "@/components/butik/ButikImage";
-import {
-  ButikLayoutSettings,
-  useSlotLayouts,
-} from "@/components/butik/ButikLayoutSettings";
-import { butikPush } from "@/components/butik/butikNav";
 import { useEffect } from "react";
 import { Great_Vibes, Montserrat } from "next/font/google";
+import { butikPush } from "@/components/butik/butikNav";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -20,8 +16,6 @@ const electricScript = Great_Vibes({
 });
 
 export function ButikHomeLanding() {
-  const { layouts, setLayouts } = useSlotLayouts();
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -49,8 +43,6 @@ export function ButikHomeLanding() {
           sizes="(max-width: 1080px) 100vw, 608px"
           className="object-cover"
         />
-
-        <ButikLayoutSettings layouts={layouts} onChange={setLayouts} />
 
         <button
           type="button"

@@ -1,6 +1,10 @@
 "use client";
 
 import { ButikImage as Image } from "@/components/butik/ButikImage";
+import {
+  ButikLayoutSettings,
+  useSlotLayouts,
+} from "@/components/butik/ButikLayoutSettings";
 import { butikPush } from "@/components/butik/butikNav";
 import {
   clearButikShots,
@@ -14,7 +18,6 @@ import {
   CAPTURE_W,
   buildPrintStrip,
   compositeStrip,
-  loadLayouts,
   warmStripAssets,
 } from "@/components/butik/butikStrip";
 import { useCamera2 } from "@/hooks/useCamera2";
@@ -103,6 +106,7 @@ function SlotPlaceholder({ index }: { index: number }) {
 }
 
 export function ButikPhotobooth() {
+  const { layouts, setLayouts } = useSlotLayouts();
   const { videoRef, start, stop, error, ready } = useCamera2({
     facingMode: "user",
     width: 3840,
@@ -126,6 +130,8 @@ export function ButikPhotobooth() {
   const capturingRef = useRef(false);
   const sessionStartedRef = useRef(false);
   const beginCountdownRef = useRef<() => void>(() => {});
+  const layoutsRef = useRef(layouts);
+  layoutsRef.current = layouts;
 
   const shotCount = shots.filter(Boolean).length;
   const allDone = shotCount >= TOTAL_SHOTS;
@@ -150,7 +156,7 @@ export function ButikPhotobooth() {
   const finishSession = useCallback(async (finalShots: string[]) => {
     setPreparing(true);
     try {
-      const L = loadLayouts();
+      const L = layoutsRef.current;
       const [strip, print] = await Promise.all([
         compositeStrip(finalShots, BUTIK_TEMPLATE, L.preview),
         buildPrintStrip(finalShots, BUTIK_TEMPLATE, L.print),
@@ -284,6 +290,8 @@ export function ButikPhotobooth() {
           sizes="(max-width: 1080px) 100vw, 608px"
           className="object-cover"
         />
+
+        <ButikLayoutSettings layouts={layouts} onChange={setLayouts} />
 
         <div className="absolute inset-[2.8cqw] z-10 flex flex-col items-center px-[5cqw] pb-[10cqw] pt-[10cqw]">
           <Image
