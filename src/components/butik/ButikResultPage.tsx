@@ -1,14 +1,18 @@
 "use client";
 
 import { ButikImage as Image } from "@/components/butik/ButikImage";
-import { useCallback, useEffect, useState } from "react";
-import QRCode from "qrcode";
+import {
+  ButikLayoutSettings,
+  useSlotLayouts,
+} from "@/components/butik/ButikLayoutSettings";
 import {
   BUTIK_PHOTO_URL_KEY,
 } from "@/components/butik/ButikPhotobooth";
 import { butikPush, butikReplace } from "@/components/butik/butikNav";
 import { getButikPhoto } from "@/components/butik/butikSession";
 import { uploadPhoto } from "@/lib/uploadPhoto";
+import { useCallback, useEffect, useState } from "react";
+import QRCode from "qrcode";
 
 /** Matches newspaper template aspect (1000 / 1414). */
 const STRIP_ASPECT = "1000 / 1414";
@@ -25,6 +29,7 @@ async function makeQr(target: string) {
 }
 
 export function ButikResultPage() {
+  const { layouts, setLayouts } = useSlotLayouts();
   const [photo, setPhoto] = useState<string | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -141,6 +146,8 @@ export function ButikResultPage() {
           sizes="(max-width: 1080px) 100vw, 608px"
           className="object-cover"
         />
+
+        <ButikLayoutSettings layouts={layouts} onChange={setLayouts} />
 
         <div className="absolute inset-[3.8cqw] z-10 flex flex-col items-center justify-between px-[2cqw] py-[8cqw]">
           <Image
