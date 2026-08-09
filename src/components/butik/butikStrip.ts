@@ -1,4 +1,4 @@
-/** Butik newspaper strip — 2×2 photo grid on t-butik-v2.jpg */
+/** Butik newspaper strip — 2×2 photo grid on t-butik-v3.jpg */
 
 export const STRIP_W = 1000;
 export const STRIP_H = 1414;
@@ -9,7 +9,7 @@ export const CAPTURE_W = 1190;
 export const CAPTURE_H = 1104;
 export const CAPTURE_RATIO = CAPTURE_W / CAPTURE_H;
 
-export const BUTIK_TEMPLATE = "/images/bt/t-butik-v2.jpg";
+export const BUTIK_TEMPLATE = "/images/bt/t-butik-v3.jpg";
 export const TEMPLATES = [BUTIK_TEMPLATE] as const;
 export const PRINT_TEMPLATES = [BUTIK_TEMPLATE] as const;
 
@@ -33,7 +33,7 @@ export type SlotLayout = {
   shiftX: number;
 };
 
-/** Measured from t-butik-v2.jpg frame lines (2×2). */
+/** Measured from t-butik-v3.jpg frame lines (2×2). */
 export const DEFAULT_PREVIEW_LAYOUT: SlotLayout = {
   left: 0.068,
   top: 0.255,

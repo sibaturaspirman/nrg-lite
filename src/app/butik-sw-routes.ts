@@ -25,5 +25,5 @@ export const BUTIK_ASSETS = [
   "/images/bt/title-template.png",
   "/images/bt/discover.png",
   "/images/bt/you-got.png",
-  "/images/bt/t-butik-v2.jpg",
+  "/images/bt/t-butik-v3.jpg",
 ] as const;
