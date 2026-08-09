@@ -112,7 +112,7 @@ export function ButikPhotobooth() {
     width: 3840,
     height: 2160,
   });
-  const mirror = true;
+  const mirror = false;
   const [countdown, setCountdown] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
