@@ -99,7 +99,17 @@ export function useCamera2(options: UseCamera2Options = {}) {
       const el = videoRef.current;
       if (el) {
         el.srcObject = stream;
-        await el.play();
+        try {
+          await el.play();
+        } catch (playErr) {
+          // Benign: play() interrupted by a new load/srcObject change.
+          const aborted =
+            (playErr instanceof DOMException &&
+              playErr.name === "AbortError") ||
+            (playErr instanceof Error &&
+              /play\(\) request was interrupted/i.test(playErr.message));
+          if (!aborted) throw playErr;
+        }
         setReady(true);
       }
     } catch (e) {

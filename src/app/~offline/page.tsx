@@ -8,7 +8,7 @@ import { useEffect } from "react";
  */
 export default function OfflinePage() {
   useEffect(() => {
-    window.location.replace("/brightspot-taman");
+    window.location.replace("/shoreline");
   }, []);
 
   return (
