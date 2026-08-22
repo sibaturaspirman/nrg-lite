@@ -9,6 +9,7 @@ import {
   Serwist,
 } from "serwist";
 import { BT_ASSETS, BT_ROUTES } from "./bt-sw-routes";
+import { BTIG_ASSETS, BTIG_ROUTES } from "./btig-sw-routes";
 import { BUTIK_ASSETS, BUTIK_ROUTES } from "./butik-sw-routes";
 import { SHORELINE_ASSETS, SHORELINE_ROUTES } from "./shoreline-sw-routes";
 
@@ -21,11 +22,13 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const OFFLINE_APP = "/brightspot-taman";
+const OFFLINE_BTIG = "/brightspot-taman-ig";
 const OFFLINE_BUTIK = "/butik";
 const OFFLINE_SHORELINE = "/shoreline";
 /** Default PWA / offline boot target. */
 const OFFLINE_DEFAULT = OFFLINE_SHORELINE;
 const NAV_CACHE = "bt-navigations";
+const BTIG_NAV_CACHE = "btig-navigations";
 const BUTIK_NAV_CACHE = "butik-navigations";
 const SHORELINE_NAV_CACHE = "shoreline-navigations";
 const IMG_CACHE = "bt-images";
@@ -39,6 +42,8 @@ const NEXT_STATIC_CACHE = "next-static-assets";
 const STABLE_PRECACHE: PrecacheEntry[] = [
   ...BT_ROUTES.map((url) => ({ url, revision: "bt-stable-1" })),
   ...BT_ASSETS.map((url) => ({ url, revision: "bt-stable-1" })),
+  ...BTIG_ROUTES.map((url) => ({ url, revision: "btig-stable-4" })),
+  ...BTIG_ASSETS.map((url) => ({ url, revision: "btig-stable-4" })),
   ...BUTIK_ROUTES.map((url) => ({ url, revision: "butik-stable-1" })),
   ...BUTIK_ASSETS.map((url) => ({ url, revision: "butik-stable-1" })),
   ...SHORELINE_ROUTES.map((url) => ({ url, revision: "shoreline-stable-2" })),
@@ -52,6 +57,8 @@ const STABLE_PRECACHE: PrecacheEntry[] = [
 function offlineRootFor(pathname: string): string {
   if (pathname.startsWith("/butik")) return OFFLINE_BUTIK;
   if (pathname.startsWith("/shoreline")) return OFFLINE_SHORELINE;
+  // Longer prefix first — /brightspot-taman-ig before /brightspot-taman
+  if (pathname.startsWith("/brightspot-taman-ig")) return OFFLINE_BTIG;
   if (pathname.startsWith("/brightspot-taman")) return OFFLINE_APP;
   return OFFLINE_DEFAULT;
 }
@@ -59,6 +66,7 @@ function offlineRootFor(pathname: string): string {
 function navCacheNameFor(pathname: string): string {
   if (pathname.startsWith("/butik")) return BUTIK_NAV_CACHE;
   if (pathname.startsWith("/shoreline")) return SHORELINE_NAV_CACHE;
+  if (pathname.startsWith("/brightspot-taman-ig")) return BTIG_NAV_CACHE;
   return NAV_CACHE;
 }
 function offlineCapableDefaultCache(): RuntimeCaching[] {
@@ -230,7 +238,22 @@ const serwist = new Serwist({
       matcher({ request, url }) {
         return (
           request.method === "GET" &&
+          url.pathname.startsWith("/brightspot-taman-ig") &&
+          request.mode !== "navigate" &&
+          request.destination !== "document"
+        );
+      },
+      handler: new NetworkFirst({
+        cacheName: BTIG_NAV_CACHE,
+        networkTimeoutSeconds: 2,
+      }),
+    },
+    {
+      matcher({ request, url }) {
+        return (
+          request.method === "GET" &&
           url.pathname.startsWith("/brightspot-taman") &&
+          !url.pathname.startsWith("/brightspot-taman-ig") &&
           request.mode !== "navigate" &&
           request.destination !== "document"
         );
@@ -272,7 +295,9 @@ const serwist = new Serwist({
       matcher({ url }) {
         return (
           url.pathname.startsWith("/images/bt/") ||
-          url.pathname.startsWith("/images/shoreline/")
+          url.pathname.startsWith("/images/btig/") ||
+          url.pathname.startsWith("/images/shoreline/") ||
+          url.pathname.startsWith("/images/Z-IG-")
         );
       },
       handler: new CacheFirst({
@@ -304,7 +329,12 @@ const serwist = new Serwist({
 async function seedCaches() {
   const imgCache = await caches.open(IMG_CACHE);
   await Promise.all(
-    [...BT_ROUTES, ...BUTIK_ROUTES, ...SHORELINE_ROUTES].map(async (path) => {
+    [
+      ...BT_ROUTES,
+      ...BTIG_ROUTES,
+      ...BUTIK_ROUTES,
+      ...SHORELINE_ROUTES,
+    ].map(async (path) => {
       try {
         const res = await fetch(path, { credentials: "same-origin" });
         if (res.ok) await putNav(path, res);
@@ -315,6 +345,7 @@ async function seedCaches() {
   );
   const assetSet = new Set<string>([
     ...BT_ASSETS,
+    ...BTIG_ASSETS,
     ...BUTIK_ASSETS,
     ...SHORELINE_ASSETS,
   ]);
