@@ -31,4 +31,10 @@ export const BT_ASSETS = [
   "/images/bt/t1-print-v2.jpg",
   "/images/bt/t2-print-v2.jpg",
   "/images/bt/t3-print-v2.jpg",
+  "/sounds/bt/countdown/five.wav",
+  "/sounds/bt/countdown/four.wav",
+  "/sounds/bt/countdown/three.wav",
+  "/sounds/bt/countdown/two.wav",
+  "/sounds/bt/countdown/one.wav",
+  "/sounds/bt/shutter.wav",
 ] as const;

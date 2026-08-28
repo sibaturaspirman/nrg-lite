@@ -297,7 +297,8 @@ const serwist = new Serwist({
           url.pathname.startsWith("/images/bt/") ||
           url.pathname.startsWith("/images/btig/") ||
           url.pathname.startsWith("/images/shoreline/") ||
-          url.pathname.startsWith("/images/Z-IG-")
+          url.pathname.startsWith("/images/Z-IG-") ||
+          url.pathname.startsWith("/sounds/bt/")
         );
       },
       handler: new CacheFirst({

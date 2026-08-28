@@ -15,6 +15,50 @@ const OUTPUT_RATIO = 1;
 /** Cap longest edge so 4K streams don't explode sessionStorage. */
 const MAX_OUTPUT_LONG_EDGE = 3840;
 
+const COUNTDOWN_AUDIO: Record<number, string> = {
+  5: "/sounds/bt/countdown/five.wav",
+  4: "/sounds/bt/countdown/four.wav",
+  3: "/sounds/bt/countdown/three.wav",
+  2: "/sounds/bt/countdown/two.wav",
+  1: "/sounds/bt/countdown/one.wav",
+};
+
+const SHUTTER_AUDIO = "/sounds/bt/shutter.wav?v=2";
+
+function playSound(src: string) {
+  try {
+    const audio = new Audio(src);
+    audio.preload = "auto";
+    void audio.play().catch(() => {
+      // Autoplay may be blocked until a user gesture; startSession unlocks it.
+    });
+  } catch {
+    // ignore
+  }
+}
+
+function playCountdownVoice(n: number) {
+  const src = COUNTDOWN_AUDIO[n];
+  if (!src) return;
+  playSound(src);
+}
+
+function playShutterSound() {
+  playSound(SHUTTER_AUDIO);
+}
+
+function warmBoothAudio() {
+  for (const src of [...Object.values(COUNTDOWN_AUDIO), SHUTTER_AUDIO]) {
+    try {
+      const audio = new Audio(src);
+      audio.preload = "auto";
+      audio.load();
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export const BRIGHTSPOT_TAMAN_PHOTO_KEY = "brightspotTamanShot";
 export const BRIGHTSPOT_TAMAN_PHOTO_URL_KEY = "brightspotTamanUploadedUrl";
 export const BRIGHTSPOT_TAMAN_SHOTS_KEY = "brightspotTamanShots";
@@ -139,6 +183,7 @@ export function BrightspotTamanPhotobooth() {
 
   useEffect(() => {
     setMirror(loadCameraMirror());
+    warmBoothAudio();
   }, []);
 
   useEffect(() => {
@@ -192,6 +237,7 @@ export function BrightspotTamanPhotobooth() {
     capturingRef.current = true;
     setBusy(true);
     setFlash(true);
+    playShutterSound();
 
     const dataUrl = captureFrame(video, mirror);
     if (!dataUrl) {
@@ -230,6 +276,7 @@ export function BrightspotTamanPhotobooth() {
     clearTimer();
     let remaining = COUNTDOWN_SECONDS;
     setCountdown(remaining);
+    playCountdownVoice(remaining);
 
     timerRef.current = setInterval(() => {
       remaining -= 1;
@@ -239,6 +286,7 @@ export function BrightspotTamanPhotobooth() {
         takePhoto();
       } else {
         setCountdown(remaining);
+        playCountdownVoice(remaining);
       }
     }, 1000);
   }, [ready, allDone, clearTimer, takePhoto]);
