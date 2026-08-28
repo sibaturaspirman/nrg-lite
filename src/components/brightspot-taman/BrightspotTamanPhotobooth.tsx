@@ -22,6 +22,27 @@ export const BRIGHTSPOT_TAMAN_SHOTS_KEY = "brightspotTamanShots";
 export const BRIGHTSPOT_TAMAN_PRINT_KEY = "brightspotTamanPrint";
 /** Selected template index (0–2) for print rebuild. */
 export const BRIGHTSPOT_TAMAN_TEMPLATE_INDEX_KEY = "brightspotTamanTemplateIndex";
+/** Persist camera mirror preference for booth preview + capture. */
+export const BRIGHTSPOT_TAMAN_CAMERA_MIRROR_KEY = "brightspotTamanCameraMirror";
+
+function loadCameraMirror(): boolean {
+  try {
+    const raw = localStorage.getItem(BRIGHTSPOT_TAMAN_CAMERA_MIRROR_KEY);
+    if (raw === "0" || raw === "false") return false;
+    if (raw === "1" || raw === "true") return true;
+  } catch {
+    // ignore
+  }
+  return true;
+}
+
+function saveCameraMirror(value: boolean) {
+  try {
+    localStorage.setItem(BRIGHTSPOT_TAMAN_CAMERA_MIRROR_KEY, value ? "1" : "0");
+  } catch {
+    // ignore
+  }
+}
 
 function captureFrame(
   video: HTMLVideoElement,
@@ -99,7 +120,7 @@ export function BrightspotTamanPhotobooth() {
     width: 3840,
     height: 2160,
   });
-  const mirror = true;
+  const [mirror, setMirror] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState(false);
@@ -117,9 +138,21 @@ export function BrightspotTamanPhotobooth() {
   const allDone = shotCount >= TOTAL_SHOTS;
 
   useEffect(() => {
+    setMirror(loadCameraMirror());
+  }, []);
+
+  useEffect(() => {
     void start();
     return () => stop();
   }, [start, stop]);
+
+  const toggleMirror = useCallback(() => {
+    setMirror((prev) => {
+      const next = !prev;
+      saveCameraMirror(next);
+      return next;
+    });
+  }, []);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -260,6 +293,15 @@ export function BrightspotTamanPhotobooth() {
           priority
           sizes="(max-width: 1080px) 100vw, 608px"
           className="object-cover"
+        />
+
+        <button
+          type="button"
+          onClick={toggleMirror}
+          aria-pressed={mirror}
+          aria-label={mirror ? "Mirror kamera aktif" : "Mirror kamera nonaktif"}
+          title={mirror ? "Mirror ON" : "Mirror OFF"}
+          className="absolute right-0 top-0 z-40 h-[200px] w-[200px] opacity-0 outline-none focus-visible:opacity-20 focus-visible:ring-4 focus-visible:ring-white/60"
         />
 
         <div className="absolute inset-[2.8cqw] z-10 flex flex-col items-center px-[5cqw] pb-[10cqw] pt-[10cqw]">
