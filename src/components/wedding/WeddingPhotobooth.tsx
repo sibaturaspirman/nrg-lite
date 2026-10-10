@@ -11,22 +11,22 @@ import { useCamera2 } from "@/hooks/useCamera2";
 
 const COUNTDOWN_SECONDS = 3;
 
-/** Photo window inside template2.png (1080×1620), as % of canvas. */
+/** Photo window inside template3.png (1200×1784), as % of canvas. */
 const FRAME_AREA = {
-  top: 3.457,
-  bottom: 70.37,
+  top: 3.475,
+  bottom: 71.02,
   left: 5.833,
-  right: 5.185,
+  right: 5.167,
 } as const;
 
 /** Native template size — no downscale. */
-const OUTPUT_W = 1080;
-const OUTPUT_H = 1620;
+const OUTPUT_W = 1200;
+const OUTPUT_H = 1784;
 
-const CAMERA_W = 1080;
-const CAMERA_H = 1620;
+const CAMERA_W = 1200;
+const CAMERA_H = 1784;
 
-const WEDDING_TEMPLATE = "/images/wedding/template2.png";
+const WEDDING_TEMPLATE = "/images/wedding/template3.png";
 
 function printImage(dataUrl: string): Promise<void> {
   return new Promise((resolve) => {
@@ -293,8 +293,8 @@ export function WeddingPhotobooth() {
   return (
     <div className="flex min-h-[100dvh] w-full items-start justify-center overflow-hidden bg-[#F5F5F5]">
       <div
-        className="relative mx-auto h-[min(100dvh,calc(100vw*1620/1080))] w-[min(100vw,calc(100dvh*1080/1620))] [container-type:inline-size]"
-        style={{ aspectRatio: "1080 / 1620" }}
+        className="relative mx-auto h-[min(100dvh,calc(100vw*1784/1200))] w-[min(100vw,calc(100dvh*1200/1784))] [container-type:inline-size]"
+        style={{ aspectRatio: "1200 / 1784" }}
       >
         <div
           className="absolute z-10 overflow-hidden bg-black"
@@ -324,7 +324,7 @@ export function WeddingPhotobooth() {
           alt=""
           fill
           priority
-          sizes="(max-width: 1080px) 100vw, 1080px"
+          sizes="(max-width: 1200px) 100vw, 1200px"
           className="pointer-events-none z-20 object-cover"
         />
 
@@ -378,8 +378,8 @@ export function WeddingPhotobooth() {
             <Image
               src={previewShot}
               alt="Foto baru"
-              width={1080}
-              height={1620}
+              width={1200}
+              height={1784}
               unoptimized
               priority
               className="h-auto max-h-[68dvh] w-full object-contain"
