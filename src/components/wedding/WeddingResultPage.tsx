@@ -130,7 +130,7 @@ export function WeddingResultPage() {
                 src={photo}
                 alt="Hasil foto"
                 width={1200}
-                height={1784}
+                height={1770}
                 unoptimized
                 priority
                 className="h-auto w-full"

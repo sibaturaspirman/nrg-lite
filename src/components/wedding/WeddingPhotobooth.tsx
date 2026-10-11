@@ -11,22 +11,22 @@ import { useCamera2 } from "@/hooks/useCamera2";
 
 const COUNTDOWN_SECONDS = 3;
 
-/** Photo window inside template3.png (1200×1784), as % of canvas. */
+/** Photo window inside template4.png (1200×1770), as % of canvas. */
 const FRAME_AREA = {
-  top: 3.475,
-  bottom: 71.02,
+  top: 3.503,
+  bottom: 71.582,
   left: 5.833,
   right: 5.167,
 } as const;
 
 /** Native template size — no downscale. */
 const OUTPUT_W = 1200;
-const OUTPUT_H = 1784;
+const OUTPUT_H = 1770;
 
 const CAMERA_W = 1200;
-const CAMERA_H = 1784;
+const CAMERA_H = 1770;
 
-const WEDDING_TEMPLATE = "/images/wedding/template3.png";
+const WEDDING_TEMPLATE = "/images/wedding/template4.png";
 
 function printImage(dataUrl: string): Promise<void> {
   return new Promise((resolve) => {
@@ -293,8 +293,8 @@ export function WeddingPhotobooth() {
   return (
     <div className="flex min-h-[100dvh] w-full items-start justify-center overflow-hidden bg-[#F5F5F5]">
       <div
-        className="relative mx-auto h-[min(100dvh,calc(100vw*1784/1200))] w-[min(100vw,calc(100dvh*1200/1784))] [container-type:inline-size]"
-        style={{ aspectRatio: "1200 / 1784" }}
+        className="relative mx-auto h-[min(100dvh,calc(100vw*1770/1200))] w-[min(100vw,calc(100dvh*1200/1770))] [container-type:inline-size]"
+        style={{ aspectRatio: "1200 / 1770" }}
       >
         <div
           className="absolute z-10 overflow-hidden bg-black"
@@ -379,7 +379,7 @@ export function WeddingPhotobooth() {
               src={previewShot}
               alt="Foto baru"
               width={1200}
-              height={1784}
+              height={1770}
               unoptimized
               priority
               className="h-auto max-h-[68dvh] w-full object-contain"
