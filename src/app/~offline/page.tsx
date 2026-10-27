@@ -8,7 +8,7 @@ import { useEffect } from "react";
  */
 export default function OfflinePage() {
   useEffect(() => {
-    window.location.replace("/shoreline");
+    window.location.replace("/bengkel");
   }, []);
 
   return (

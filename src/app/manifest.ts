@@ -3,10 +3,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Capture Your Masterpiece Moment",
-    short_name: "Shoreline",
-    description: "Shoreline photobooth — capture your masterpiece moment.",
-    start_url: "/shoreline",
-    scope: "/shoreline",
+    short_name: "Bengkel",
+    description: "Bengkel photobooth — capture your masterpiece moment.",
+    start_url: "/bengkel",
+    scope: "/bengkel",
     display: "standalone",
     orientation: "portrait",
     background_color: "#1a0508",

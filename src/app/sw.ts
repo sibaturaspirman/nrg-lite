@@ -11,6 +11,7 @@ import {
 import { BT_ASSETS, BT_ROUTES } from "./bt-sw-routes";
 import { BTIG_ASSETS, BTIG_ROUTES } from "./btig-sw-routes";
 import { BUTIK_ASSETS, BUTIK_ROUTES } from "./butik-sw-routes";
+import { BENGKEL_ASSETS, BENGKEL_ROUTES } from "./bengkel-sw-routes";
 import { SHORELINE_ASSETS, SHORELINE_ROUTES } from "./shoreline-sw-routes";
 
 declare global {
@@ -25,12 +26,14 @@ const OFFLINE_APP = "/brightspot-taman";
 const OFFLINE_BTIG = "/brightspot-taman-ig";
 const OFFLINE_BUTIK = "/butik";
 const OFFLINE_SHORELINE = "/shoreline";
+const OFFLINE_BENGKEL = "/bengkel";
 /** Default PWA / offline boot target. */
-const OFFLINE_DEFAULT = OFFLINE_SHORELINE;
+const OFFLINE_DEFAULT = OFFLINE_BENGKEL;
 const NAV_CACHE = "bt-navigations";
 const BTIG_NAV_CACHE = "btig-navigations";
 const BUTIK_NAV_CACHE = "butik-navigations";
 const SHORELINE_NAV_CACHE = "shoreline-navigations";
+const BENGKEL_NAV_CACHE = "bengkel-navigations";
 const IMG_CACHE = "bt-images";
 const NEXT_STATIC_CACHE = "next-static-assets";
 
@@ -48,14 +51,17 @@ const STABLE_PRECACHE: PrecacheEntry[] = [
   ...BUTIK_ASSETS.map((url) => ({ url, revision: "butik-stable-1" })),
   ...SHORELINE_ROUTES.map((url) => ({ url, revision: "shoreline-stable-2" })),
   ...SHORELINE_ASSETS.map((url) => ({ url, revision: "shoreline-stable-2" })),
-  { url: "/offline-boot.html", revision: "shoreline-stable-2" },
-  { url: "/manifest.webmanifest", revision: "shoreline-stable-2" },
+  ...BENGKEL_ROUTES.map((url) => ({ url, revision: "bengkel-stable-1" })),
+  ...BENGKEL_ASSETS.map((url) => ({ url, revision: "bengkel-stable-1" })),
+  { url: "/offline-boot.html", revision: "bengkel-default-1" },
+  { url: "/manifest.webmanifest", revision: "bengkel-default-1" },
   { url: "/icons/icon-192.png", revision: "bt-stable-1" },
   { url: "/icons/icon-512.png", revision: "bt-stable-1" },
 ];
 
 function offlineRootFor(pathname: string): string {
   if (pathname.startsWith("/butik")) return OFFLINE_BUTIK;
+  if (pathname.startsWith("/bengkel")) return OFFLINE_BENGKEL;
   if (pathname.startsWith("/shoreline")) return OFFLINE_SHORELINE;
   // Longer prefix first — /brightspot-taman-ig before /brightspot-taman
   if (pathname.startsWith("/brightspot-taman-ig")) return OFFLINE_BTIG;
@@ -65,6 +71,7 @@ function offlineRootFor(pathname: string): string {
 
 function navCacheNameFor(pathname: string): string {
   if (pathname.startsWith("/butik")) return BUTIK_NAV_CACHE;
+  if (pathname.startsWith("/bengkel")) return BENGKEL_NAV_CACHE;
   if (pathname.startsWith("/shoreline")) return SHORELINE_NAV_CACHE;
   if (pathname.startsWith("/brightspot-taman-ig")) return BTIG_NAV_CACHE;
   return NAV_CACHE;
@@ -216,6 +223,7 @@ self.addEventListener("fetch", (event) => {
   const isAppNav =
     (url.pathname.startsWith("/brightspot-taman") ||
       url.pathname.startsWith("/butik") ||
+      url.pathname.startsWith("/bengkel") ||
       url.pathname.startsWith("/shoreline")) &&
     (request.mode === "navigate" || request.destination === "document");
 
@@ -288,6 +296,20 @@ const serwist = new Serwist({
       },
       handler: new NetworkFirst({
         cacheName: SHORELINE_NAV_CACHE,
+        networkTimeoutSeconds: 2,
+      }),
+    },
+    {
+      matcher({ request, url }) {
+        return (
+          request.method === "GET" &&
+          url.pathname.startsWith("/bengkel") &&
+          request.mode !== "navigate" &&
+          request.destination !== "document"
+        );
+      },
+      handler: new NetworkFirst({
+        cacheName: BENGKEL_NAV_CACHE,
         networkTimeoutSeconds: 2,
       }),
     },
